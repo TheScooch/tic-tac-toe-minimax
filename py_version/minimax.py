@@ -18,25 +18,46 @@ Paul Lu
 CCID:  paullu
 """
 
-HUMAN = -1
-COMP = +1
-board = [
-    [0, 0, 0],
-    [0, 0, 0],
-    [0, 0, 0],
-]
+class CurrState:
+    HUMAN = -1
+    COMP = +1
+
+    def __init__(self, x, y, state):
+        self.state = state
+        self.coordinate = (x , y)
+
+    def currentState(self):
+        return self.state
+
+    def checkPlayed(self):
+        if self.state == 0:
+            return true
+        else:
+            return false
+
+
 
 class ticTacking:
 
-    def evaluate(state):
+    def __init__(self, choice_human, choice_ai):
+        self.h_choice = choice_human
+        self.c_choice = choice_ai
+        self.board = [
+            [0, 0, 0],
+            [0, 0, 0],
+            [0, 0, 0],
+        ]
+
+
+    def evaluate(self):
         """
         Function to heuristic evaluation of state.
         :param state: the state of the current board
         :return: +1 if the computer wins; -1 if the human wins; 0 draw
         """
-        if self.wins(state, COMP):
+        if self.wins(CurrState.COMP):       # Changed params to use state class
             score = +1
-        elif self.wins(state, HUMAN):
+        elif self.wins(CurrState.HUMAN):
             score = -1
         else:
             score = 0
@@ -44,7 +65,7 @@ class ticTacking:
         return score
 
 
-    def wins(state, player):
+    def wins(self, player):
         """
         This function tests if a specific player wins. Possibilities:
         * Three rows    [X X X] or [O O O]
@@ -54,15 +75,17 @@ class ticTacking:
         :param player: a human or a computer
         :return: True if the player wins
         """
+        
+        # Added the self so it can call itself
         win_state = [
-            [state[0][0], state[0][1], state[0][2]],
-            [state[1][0], state[1][1], state[1][2]],
-            [state[2][0], state[2][1], state[2][2]],
-            [state[0][0], state[1][0], state[2][0]],
-            [state[0][1], state[1][1], state[2][1]],
-            [state[0][2], state[1][2], state[2][2]],
-            [state[0][0], state[1][1], state[2][2]],
-            [state[2][0], state[1][1], state[0][2]],
+            [self.board[0][0].state, self.board[0][1].state, self.board[0][2].state],
+            [self.board[1][0].state, self.board[1][1].state, self.board[1][2].state],
+            [self.board[2][0].state, self.board[2][1].state, self.board[2][2].state],
+            [self.board[0][0].state, self.board[1][0].state, self.board[2][0].state],
+            [self.board[0][1].state, self.board[1][1].state, self.board[2][1].state],
+            [self.board[0][2].state, self.board[1][2].state, self.board[2][2].state],
+            [self.board[0][0].state, self.board[1][1].state, self.board[2][2].state],
+            [self.board[2][0].state, self.board[1][1].state, self.board[0][2].state],
         ]
         if [player, player, player] in win_state:
             return True
@@ -70,16 +93,16 @@ class ticTacking:
             return False
 
 
-    def game_over(state):
+    def game_over(self):
         """
         This function test if the human or computer wins
         :param state: the state of the current board
         :return: True if the human or computer wins
         """
-        return self.wins(state, HUMAN) or self.wins(state, COMP)
+        return self.wins(State.HUMAN) or self.wins(State.COMP)
 
 
-    def empty_cells(state):
+    def empty_cells(self):
         """
         Each empty cell will be added into cells' list
         :param state: the state of the current board
@@ -87,22 +110,22 @@ class ticTacking:
         """
         cells = []
 
-        for x, row in enumerate(state):
-            for y, cell in enumerate(row):
-                if cell == 0:
-                    cells.append([x, y])
+        for list in self.board:
+            for number in list:
+                if number == 0:
+                    cells.append(len(list))
 
         return cells
 
 
-    def valid_move(x, y):
+    def valid_move(self, x, y):
         """
         A move is valid if the chosen cell is empty
         :param x: X coordinate
         :param y: Y coordinate
         :return: True if the board[x][y] is empty
         """
-        if [x, y] in self.empty_cells(board):
+        if self.board[x][y] in self.empty_cells():
             return True
         else:
             return False
@@ -116,13 +139,13 @@ class ticTacking:
         :param player: the current player
         """
         if self.valid_move(x, y):
-            board[x][y] = player
+            board[x][y].state = player
             return True
         else:
             return False
 
 
-    def minimax(state, depth, player):
+    def minimax(self, depth, player):
         """
         AI function that choice the best move
         :param state: current state of the board
@@ -131,23 +154,23 @@ class ticTacking:
         :param player: an human or a computer
         :return: a list with [the best row, best col, best score]
         """
-        if player == COMP:
+        if player == CurrState.COMP:
             best = [-1, -1, -infinity]
         else:
             best = [-1, -1, +infinity]
 
-        if depth == 0 or game_over(state):
-            score = evaluate(state)
+        if depth == 0 or self.game_over():
+            score = self.evaluate()
             return [-1, -1, score]
 
-        for cell in empty_cells(state):
+        for cell in self.empty_cells():
             x, y = cell[0], cell[1]
-            state[x][y] = player
-            score = minimax(state, depth - 1, -player)
-            state[x][y] = 0
+            self.board[x][y].state = player
+            score = selfminimax( depth - 1, -player)
+            self.board[x][y].state = 0
             score[0], score[1] = x, y
 
-            if player == COMP:
+            if player == currState.COMP:
                 if score[2] > best[2]:
                     best = score  # max value
             else:
@@ -157,44 +180,27 @@ class ticTacking:
         return best
 
 
-def clean():
-    """
-    Clears the console
-    """
-    # Paul Lu.  Do not clear screen to keep output human readable.
-    print()
-    return
+    def render(state, c_choice, h_choice):
+        """
+        Print the board on console
+        :param state: current state of the board
+        """
 
-    os_name = platform.system().lower()
-    if 'windows' in os_name:
-        system('cls')
-    else:
-        system('clear')
+        chars = {
+            -1: h_choice,
+            +1: c_choice,
+            0: ' '
+        }
+        str_line = '---------------'
 
-
-def render(state, c_choice, h_choice):
-    """
-    Print the board on console
-    :param state: current state of the board
-    """
-
-    chars = {
-        -1: h_choice,
-        +1: c_choice,
-        0: ' '
-    }
-    str_line = '---------------'
-
-    print('\n' + str_line)
-    for row in state:
-        for cell in row:
-            symbol = chars[cell]
-            print(f'| {symbol} |', end='')
         print('\n' + str_line)
+        for row in state:
+            for cell in row:
+                symbol = chars[cell]
+                print(f'| {symbol} |', end='')
+            print('\n' + str_line)
 
 
-class turner:
-    
     def ai_turn(c_choice, h_choice):
         """
         It calls the minimax function if the depth < 9,
@@ -224,42 +230,58 @@ class turner:
 
 
     def human_turn(c_choice, h_choice):
-        """
-        The Human plays choosing a valid move.
-        :param c_choice: computer's choice X or O
-        :param h_choice: human's choice X or O
-        :return:
-        """
-        depth = len(empty_cells(board))
-        if depth == 0 or game_over(board):
-            return
+            """
+            The Human plays choosing a valid move.
+            :param c_choice: computer's choice X or O
+            :param h_choice: human's choice X or O
+            :return:
+            """
+            depth = len(empty_cells(board))
+            if depth == 0 or game_over(board):
+                return
 
-    # Dictionary of valid moves
-    move = -1
-    moves = {
-        1: [0, 0], 2: [0, 1], 3: [0, 2],
-        4: [1, 0], 5: [1, 1], 6: [1, 2],
-        7: [2, 0], 8: [2, 1], 9: [2, 2],
-    }
+        # Dictionary of valid moves
+        move = -1
+        moves = {
+            1: [0, 0], 2: [0, 1], 3: [0, 2],
+            4: [1, 0], 5: [1, 1], 6: [1, 2],
+            7: [2, 0], 8: [2, 1], 9: [2, 2],
+        }
 
-    clean()
-    print(f'Human turn [{h_choice}]')
-    render(board, c_choice, h_choice)
+        clean()
+        print(f'Human turn [{h_choice}]')
+        render(board, c_choice, h_choice)
 
-    while move < 1 or move > 9:
-        try:
-            move = int(input('Use numpad (1..9): '))
-            coord = moves[move]
-            can_move = set_move(coord[0], coord[1], HUMAN)
+        while move < 1 or move > 9:
+            try:
+                move = int(input('Use numpad (1..9): '))
+                coord = moves[move]
+                can_move = set_move(coord[0], coord[1], HUMAN)
 
-            if not can_move:
-                print('Bad move')
-                move = -1
-        except (EOFError, KeyboardInterrupt):
-            print('Bye')
-            exit()
-        except (KeyError, ValueError):
-            print('Bad choice')
+                if not can_move:
+                    print('Bad move')
+                    move = -1
+            except (EOFError, KeyboardInterrupt):
+                print('Bye')
+                exit()
+            except (KeyError, ValueError):
+                print('Bad choice')
+
+
+
+def clean():
+    """
+    Clears the console
+    """
+    # Paul Lu.  Do not clear screen to keep output human readable.
+    print()
+    return
+
+    os_name = platform.system().lower()
+    if 'windows' in os_name:
+        system('cls')
+    else:
+        system('clear')
 
 
 def main():
