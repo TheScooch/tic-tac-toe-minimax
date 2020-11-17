@@ -19,7 +19,7 @@ Year: 2017
 License: GNU GENERAL PUBLIC LICENSE (GPL)
 
 Scott Gebert
-CCID:  Sagebert
+CCID: Sagebert
 
 Credit to Paul Lu for base code
 """
