@@ -1,6 +1,11 @@
+# Scott Gebert
+# 1616526
+# Assignment 6: OO Minimax
+
+
 from math import inf as infinity
 from random import choice
-from random import seed as randomseed       # Paul Lu
+from random import seed as randomseed
 import platform
 import time
 from os import system
@@ -13,40 +18,59 @@ Author: Clederson Cruz
 Year: 2017
 License: GNU GENERAL PUBLIC LICENSE (GPL)
 
-Example:
-Paul Lu
-CCID:  paullu
+Scott Gebert
+CCID:  Sagebert
+
+Credit to Paul Lu for base code
 """
 
 class CurrState:
+    """
+    Creates an object to hold the state information as opposed to
+    constantly passing it into functions
+    :__init__ holds important varibles
+    :retState returns the state
+    """
+    
+    # Dictates the values for the human and comp
     HUMAN = -1
     COMP = +1
 
-    def __init__(self, x, y, state):
+    # Initalizes the objects coords and state
+    def __init__(self, x, y, state):  
         self.state = state
-        self.coordinate = (x , y)
-
-    def currentState(self):
-        return self.state
-
-    def checkPlayed(self):
-        if self.state == 0:
-            return True
-        else:
-            return False
-
+        self.coordinate = (x, y)
+    
+    def retState(self):
+        """
+        Not useful at the moment but can be used to return the 
+        state of the board
+        """
+        return self.state 
 
 
 class ticTacking:
-
+    """
+    Creates an object that takes care of all of the real processing, in this class
+    numerous functions handle all nesseary tic-tak toe processes by manipulating a boarad 
+    made up of a list of states with states being used to 
+    """
     def __init__(self, choice_human, choice_ai):
         self.h_choice = choice_human
         self.c_choice = choice_ai
-        self.board = [
-            [0, 0, 0],
-            [0, 0, 0],
-            [0, 0, 0],
-        ]
+        self.boardMaker()
+
+    def boardMaker(self):
+        """
+        This function creates the board by implmenting the CurrState class
+        and creating one of these objects for each board position
+        """
+        self.board = []
+        for ro in range(3):
+            row = []
+            for co in range(3):
+                row.append(CurrState(ro , co, 0))
+            self.board.append(row)
 
 
     def evaluate(self):
@@ -55,7 +79,9 @@ class ticTacking:
         :param state: the state of the current board
         :return: +1 if the computer wins; -1 if the human wins; 0 draw
         """
-        if self.wins(CurrState.COMP):       # Changed params to use state class
+
+        # Changed params to use state class
+        if self.wins(CurrState.COMP):
             score = +1
         elif self.wins(CurrState.HUMAN):
             score = -1
@@ -76,16 +102,17 @@ class ticTacking:
         :return: True if the player wins
         """
         
-        # Added the self so it can call itself
+        # Added the self so it can call itself and the .state to be compatible with 
+        # my new class
         win_state = [
-            [self.board[0][0], self.board[0][1], self.board[0][2]],
-            [self.board[1][0], self.board[1][1], self.board[1][2]],
-            [self.board[2][0], self.board[2][1], self.board[2][2]],
-            [self.board[0][0], self.board[1][0], self.board[2][0]],
-            [self.board[0][1], self.board[1][1], self.board[2][1]],
-            [self.board[0][2], self.board[1][2], self.board[2][2]],
-            [self.board[0][0], self.board[1][1], self.board[2][2]],
-            [self.board[2][0], self.board[1][1], self.board[0][2]],
+            [self.board[0][0].state, self.board[0][1].state, self.board[0][2].state],
+            [self.board[1][0].state, self.board[1][1].state, self.board[1][2].state],
+            [self.board[2][0].state, self.board[2][1].state, self.board[2][2].state],
+            [self.board[0][0].state, self.board[1][0].state, self.board[2][0].state],
+            [self.board[0][1].state, self.board[1][1].state, self.board[2][1].state],
+            [self.board[0][2].state, self.board[1][2].state, self.board[2][2].state],
+            [self.board[0][0].state, self.board[1][1].state, self.board[2][2].state],
+            [self.board[2][0].state, self.board[1][1].state, self.board[0][2].state],
         ]
         if [player, player, player] in win_state:
             return True
@@ -108,13 +135,15 @@ class ticTacking:
         :param state: the state of the current board
         :return: a list of empty cells
         """
+        # revamped how the cells list is created, it is now a list of 
+        # objest as opposed to a list of locations, all of these objects
+        # contain the location of an empty cell
         cells = []
 
-        for list in self.board:
-            for number in list:
-                if number == 0:
-                    cells.append(len(list))
-
+        for lists in self.board:
+            for ele in lists:
+                if ele.state == 0:
+                    cells.append(ele)
         return cells
 
 
@@ -125,6 +154,9 @@ class ticTacking:
         :param y: Y coordinate
         :return: True if the board[x][y] is empty
         """
+        # Just added some selfs and changes some parms to make it work
+        # within a class (removed most params and changed others to utlize the state 
+        # object)
         if self.board[x][y] in self.empty_cells():
             return True
         else:
@@ -138,8 +170,11 @@ class ticTacking:
         :param y: Y coordinate
         :param player: the current player
         """
+        # Just added some selfs and changes some parms to make it work
+        # within a class (removed most params and changed others to utlize the state 
+        # object)
         if self.valid_move(x, y):
-            self.board[x][y] = player
+            self.board[x][y].state = player
             return True
         else:
             return False
@@ -154,6 +189,10 @@ class ticTacking:
         :param player: an human or a computer
         :return: a list with [the best row, best col, best score]
         """
+
+        # Just added some selfs and changes some parms to make it work
+        # within a class (removed most params and changed others to utlize the state 
+        # object)
         if player == CurrState.COMP:
             best = [-1, -1, -infinity]
         else:
@@ -164,7 +203,7 @@ class ticTacking:
             return [-1, -1, score]
 
         for cell in self.empty_cells():
-            x, y = cell[0], cell[1]
+            x, y = cell.coordinate
             self.board[x][y].state = player
             score = self.minimax( depth - 1, -player)
             self.board[x][y].state = 0
@@ -196,7 +235,7 @@ class ticTacking:
         print('\n' + str_line)
         for row in self.board:
             for cell in row:
-                symbol = chars[cell]
+                symbol = chars[cell.state]
                 print(f'| {symbol} |', end='')
             print('\n' + str_line)
 
@@ -209,6 +248,9 @@ class ticTacking:
         :param h_choice: human's choice X or O
         :return:
         """
+        # Just added some selfs and changes some parms to make it work
+        # within a class (removed most params and changed others to utlize the state 
+        # object)
         depth = len(self.empty_cells())
         if depth == 0 or self.game_over():
             return
@@ -236,6 +278,9 @@ class ticTacking:
         :param h_choice: human's choice X or O
         :return:
         """
+        # Just added some selfs and changes some parms to make it work
+        # within a class (removed most params and changed others to utlize the state 
+        # object)
         depth = len(self.empty_cells())
         if depth == 0 or self.game_over():
             return
@@ -257,6 +302,7 @@ class ticTacking:
                 move = int(input('Use numpad (1..9): '))
                 coord = moves[move]
                 can_move = self.set_move(coord[0], coord[1], CurrState.HUMAN)
+                print(can_move)
 
                 if not can_move:
                     print('Bad move')
@@ -269,6 +315,7 @@ class ticTacking:
 
 
 
+# Not incluced in the other object as not realted to tic-tacking just clearing
 def clean():
     """
     Clears the console
@@ -335,22 +382,22 @@ def main():
             first = ''
 
         game.human_turn()
-        game.ai_turn(c_choice, h_choice)
+        game.ai_turn()
 
     # Game over message
-    if game.wins(board, HUMAN):
+    if game.wins(CurrState.HUMAN):
         clean()
         print(f'Human turn [{h_choice}]')
-        game.render(board, c_choice, h_choice)
+        game.render()
         print('YOU WIN!')
-    elif game.wins(board, COMP):
+    elif game.wins(CurrState.COMP):
         clean()
         print(f'Computer turn [{c_choice}]')
-        game.render(board, c_choice, h_choice)
+        game.render()
         print('YOU LOSE!')
     else:
         clean()
-        game.render(board, c_choice, h_choice)
+        game.render()
         print('DRAW!')
 
     exit()
