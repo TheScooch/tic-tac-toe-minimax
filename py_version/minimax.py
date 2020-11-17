@@ -31,9 +31,9 @@ class CurrState:
 
     def checkPlayed(self):
         if self.state == 0:
-            return true
+            return True
         else:
-            return false
+            return False
 
 
 
@@ -78,14 +78,14 @@ class ticTacking:
         
         # Added the self so it can call itself
         win_state = [
-            [self.board[0][0].state, self.board[0][1].state, self.board[0][2].state],
-            [self.board[1][0].state, self.board[1][1].state, self.board[1][2].state],
-            [self.board[2][0].state, self.board[2][1].state, self.board[2][2].state],
-            [self.board[0][0].state, self.board[1][0].state, self.board[2][0].state],
-            [self.board[0][1].state, self.board[1][1].state, self.board[2][1].state],
-            [self.board[0][2].state, self.board[1][2].state, self.board[2][2].state],
-            [self.board[0][0].state, self.board[1][1].state, self.board[2][2].state],
-            [self.board[2][0].state, self.board[1][1].state, self.board[0][2].state],
+            [self.board[0][0], self.board[0][1], self.board[0][2]],
+            [self.board[1][0], self.board[1][1], self.board[1][2]],
+            [self.board[2][0], self.board[2][1], self.board[2][2]],
+            [self.board[0][0], self.board[1][0], self.board[2][0]],
+            [self.board[0][1], self.board[1][1], self.board[2][1]],
+            [self.board[0][2], self.board[1][2], self.board[2][2]],
+            [self.board[0][0], self.board[1][1], self.board[2][2]],
+            [self.board[2][0], self.board[1][1], self.board[0][2]],
         ]
         if [player, player, player] in win_state:
             return True
@@ -99,7 +99,7 @@ class ticTacking:
         :param state: the state of the current board
         :return: True if the human or computer wins
         """
-        return self.wins(State.HUMAN) or self.wins(State.COMP)
+        return self.wins(CurrState.HUMAN) or self.wins(CurrState.COMP)
 
 
     def empty_cells(self):
@@ -131,7 +131,7 @@ class ticTacking:
             return False
 
 
-    def set_move(x, y, player):
+    def set_move(self, x, y, player):
         """
         Set the move on board, if the coordinates are valid
         :param x: X coordinate
@@ -139,7 +139,7 @@ class ticTacking:
         :param player: the current player
         """
         if self.valid_move(x, y):
-            board[x][y].state = player
+            self.board[x][y] = player
             return True
         else:
             return False
@@ -166,11 +166,11 @@ class ticTacking:
         for cell in self.empty_cells():
             x, y = cell[0], cell[1]
             self.board[x][y].state = player
-            score = selfminimax( depth - 1, -player)
+            score = self.minimax( depth - 1, -player)
             self.board[x][y].state = 0
             score[0], score[1] = x, y
 
-            if player == currState.COMP:
+            if player == CurrState.COMP:
                 if score[2] > best[2]:
                     best = score  # max value
             else:
@@ -180,28 +180,28 @@ class ticTacking:
         return best
 
 
-    def render(state, c_choice, h_choice):
+    def render(self):
         """
         Print the board on console
         :param state: current state of the board
         """
 
         chars = {
-            -1: h_choice,
-            +1: c_choice,
+            -1: self.h_choice,
+            +1: self.c_choice,
             0: ' '
         }
         str_line = '---------------'
 
         print('\n' + str_line)
-        for row in state:
+        for row in self.board:
             for cell in row:
                 symbol = chars[cell]
                 print(f'| {symbol} |', end='')
             print('\n' + str_line)
 
 
-    def ai_turn(c_choice, h_choice):
+    def ai_turn(self):
         """
         It calls the minimax function if the depth < 9,
         else it choices a random coordinate.
@@ -209,36 +209,36 @@ class ticTacking:
         :param h_choice: human's choice X or O
         :return:
         """
-        depth = len(empty_cells(board))
-        if depth == 0 or game_over(board):
+        depth = len(self.empty_cells())
+        if depth == 0 or self.game_over():
             return
 
         clean()
-        print(f'Computer turn [{c_choice}]')
-        render(board, c_choice, h_choice)
+        print(f'Computer turn [{self.c_choice}]')
+        self.render()
 
         if depth == 9:
             x = choice([0, 1, 2])
             y = choice([0, 1, 2])
         else:
-            move = minimax(board, depth, COMP)
+            move = self.minimax(depth, CurrState.COMP)
             x, y = move[0], move[1]
 
-        set_move(x, y, COMP)
+        self.set_move(x, y, CurrState.COMP)
         # Paul Lu.  Go full speed.
         # time.sleep(1)
 
 
-    def human_turn(c_choice, h_choice):
-            """
-            The Human plays choosing a valid move.
-            :param c_choice: computer's choice X or O
-            :param h_choice: human's choice X or O
-            :return:
-            """
-            depth = len(empty_cells(board))
-            if depth == 0 or game_over(board):
-                return
+    def human_turn(self):
+        """
+        The Human plays choosing a valid move.
+        :param c_choice: computer's choice X or O
+        :param h_choice: human's choice X or O
+        :return:
+        """
+        depth = len(self.empty_cells())
+        if depth == 0 or self.game_over():
+            return
 
         # Dictionary of valid moves
         move = -1
@@ -249,14 +249,14 @@ class ticTacking:
         }
 
         clean()
-        print(f'Human turn [{h_choice}]')
-        render(board, c_choice, h_choice)
+        print(f'Human turn [{self.h_choice}]')
+        self.render()
 
         while move < 1 or move > 9:
             try:
                 move = int(input('Use numpad (1..9): '))
                 coord = moves[move]
-                can_move = set_move(coord[0], coord[1], HUMAN)
+                can_move = self.set_move(coord[0], coord[1], CurrState.HUMAN)
 
                 if not can_move:
                     print('Bad move')
@@ -326,28 +326,31 @@ def main():
             print('Bad choice')
 
     # Main loop of this game
-    while len(empty_cells(board)) > 0 and not game_over(board):
+    # Creating the game object
+    game = ticTacking(h_choice, c_choice)
+
+    while len(game.empty_cells()) > 0 and not game.game_over():
         if first == 'N':
-            ai_turn(c_choice, h_choice)
+            game.ai_turn()
             first = ''
 
-        human_turn(c_choice, h_choice)
-        ai_turn(c_choice, h_choice)
+        game.human_turn()
+        game.ai_turn(c_choice, h_choice)
 
     # Game over message
-    if wins(board, HUMAN):
+    if game.wins(board, HUMAN):
         clean()
         print(f'Human turn [{h_choice}]')
-        render(board, c_choice, h_choice)
+        game.render(board, c_choice, h_choice)
         print('YOU WIN!')
-    elif wins(board, COMP):
+    elif game.wins(board, COMP):
         clean()
         print(f'Computer turn [{c_choice}]')
-        render(board, c_choice, h_choice)
+        game.render(board, c_choice, h_choice)
         print('YOU LOSE!')
     else:
         clean()
-        render(board, c_choice, h_choice)
+        game.render(board, c_choice, h_choice)
         print('DRAW!')
 
     exit()
